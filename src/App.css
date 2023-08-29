@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#root {
+    width: 100%;
+    height: 100vh;
+    background-color: aqua;
+}
+
+.node {
+    width: 10px;
+    height: 10px;
+    border: 1px solid red;
+}
+
+.node:hover {
+    background-color: black;
+}
+
+#line {
+    display: flex;
+}

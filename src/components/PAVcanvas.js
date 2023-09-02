@@ -3,37 +3,53 @@ import "../App.css";
 import {createNode, PAVnode} from "./PAVnode.js";
 import dijkstraAlgorithm from "../algorithms/dijkstra";
 
-function createNodeList(rows, columns) {
-    let nodes = [];
-    for (let i=0; i<rows; i++) {
-        let subArray = [];
-        for (let j=0; j<columns; j++) {
-            subArray.push(createNode(i, j));
-        };
-        nodes.push(subArray);
-    };
-    return nodes;
-};
-
-function createCanvas(nodesList) {
-    const nodes = nodesList.map((subNodeArray, rowId) => {
-        return (
-            <div key={rowId} className="line">
-                {subNodeArray.map((node, nodeId) => {
-                    return <PAVnode key={nodeId} node={node} />;
-                })}
-            </div>
-        );
-    });
-    return nodes;
-};
-
 export default function PAVcanvas() {
     const rows = 15;
     const columns = 50;
 
     const [nodes, setNodes] = React.useState(createNodeList(rows, columns));
-    //const [nodesToRender, setNodesToRender]= React.useState(createCanvas(nodes));
+    const [mousePressed, setMouseState] = React.useState(false);
+
+    function toggleWall(grid, row, col) {
+        const newGrid = grid.slice();
+        const node = newGrid[row][col];
+        const newNode = {
+            ...node,
+            isWall: !node.isWall,
+        }
+        newGrid[row][col] = newNode;
+        return newGrid;
+    };
+
+    function handleMouseDown(row, col) {
+        const newGrid = toggleWall(nodes, row, col);
+        setMouseState(true);
+        setNodes(newGrid);
+    };
+
+    function handleMouseHover(row, col) {
+        if (mousePressed) {
+            const newGrid = toggleWall(nodes, row, col);
+            setNodes(newGrid);
+        };
+    };
+
+    function handleMouseUp() {
+        setMouseState(false);
+    };
+
+    function createNodeList(rows, columns) {
+        let nodes = [];
+        for (let i=0; i<rows; i++) {
+            let subArray = [];
+            for (let j=0; j<columns; j++) {
+                const node = createNode(i, j);
+                subArray.push(node);
+            };
+            nodes.push(subArray);
+        };
+        return nodes;
+    };
 
     function animateDijkstra(path) {
         for (let i=0; i<path.length; i++) {
@@ -66,7 +82,13 @@ export default function PAVcanvas() {
                     return (
                         <div key={rowId} className="line">
                             {subNodeArray.map((node, nodeId) => {
-                                return <PAVnode key={nodeId} node={node} />;
+                                return <PAVnode
+                                    key={nodeId}
+                                    node={node}
+                                    onMouseDown={() => handleMouseDown(node.row, node.column)}
+                                    onMouseEnter={() => handleMouseHover(node.row, node.column)}
+                                    onMouseUp={() => handleMouseUp()}
+                                    />;
                             })}
                         </div>
                     );

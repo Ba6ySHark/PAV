@@ -6,10 +6,16 @@ export function PAVnode(props) {
         classID = "end";
     } else if (props.node.isMarked) {
         classID = "visited";
+    } else if (props.node.isWall) {
+        classID = "wall";
     };
 
     return (
-        <div className={classID}></div>
+        <div className={classID} 
+            onMouseDown={() => props.onMouseDown(props.node.row, props.node.column)}
+            onMouseEnter={() => props.onMouseEnter(props.node.row, props.node.column)}
+            onMouseUp={() => props.onMouseUp()}
+        ></div>
     );
 };
 
@@ -23,6 +29,7 @@ export function createNode(row, col) {
         isWall: false,
         isVisited: false,
         isMarked: false,
+        isPartOfPath: false,
         previousNode: null,
     };
 };

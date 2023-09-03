@@ -8,6 +8,34 @@ body {
     height: 100vh;
 }
 
+/* nav section begins here */
+.nav {
+    display: flex;
+    position: fixed;
+    width: 100%;
+    height: 50px;
+    background-color: aqua;
+    align-items: center;
+}
+
+.algo--list {
+    display: none;
+}
+
+.nav:hover {
+    .algo--list {
+        position: absolute;
+        display: block;
+    }
+}
+/* nav section ends here */
+
+.canvas {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .node {
     width: 10px;
     height: 10px;

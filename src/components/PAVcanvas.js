@@ -1,5 +1,4 @@
 import React from "react";
-import "../App.css";
 import {createNode, PAVnode} from "./PAVnode.js";
 import dijkstraAlgorithm from "../algorithms/dijkstra";
 

@@ -66,16 +66,16 @@ export default function PAVcanvas() {
         };
     };
     
-    function visualizeDijkstra(nodesList) {
-        const startNode = nodesList[8][10];
-        const endNode = nodesList[8][40];
-        const path = dijkstraAlgorithm(nodesList, startNode, endNode);
+    function visualizeDijkstra() {
+        const startNode = nodes[8][10];
+        const endNode = nodes[8][40];
+        const path = dijkstraAlgorithm(nodes, startNode, endNode);
         animateDijkstra(path);
     };
 
     return (
         <div className="canvas">
-            <button className="algo--button" onClick={() => visualizeDijkstra(nodes, setNodes)}>Visualize</button>
+            <button className="algo--button" onClick={() => visualizeDijkstra()}>Visualize</button>
             {
                 nodes.map((subNodeArray, rowId) => {
                     return (

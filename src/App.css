@@ -16,17 +16,32 @@ body {
     height: 50px;
     background-color: aqua;
     align-items: center;
+    justify-content: space-between;
+}
+
+.features--algos {
+    display: block;
+}
+
+.featured--algos h3 {
+    line-height: 50px;
+}
+
+.featured--algos:hover {
+    .algo--list {
+        position: absolute;
+        display: block;
+        margin-top: 0;
+    }
 }
 
 .algo--list {
     display: none;
 }
 
-.nav:hover {
-    .algo--list {
-        position: absolute;
-        display: block;
-    }
+.algo--list:hover {
+    position: absolute;
+    display: block;
 }
 /* nav section ends here */
 

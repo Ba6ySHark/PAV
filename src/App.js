@@ -4,10 +4,12 @@ import PAVcanvas from "./components/PAVcanvas.js";
 import NavBar from "./components/NavBar.js";
 import dijkstraAlgorithm from "./algorithms/dijkstra.js";
 import astarAlgorithm from "./algorithms/astar.js";
+import bfsAlgorithm from "./algorithms/bfs.js";
+import dfsAlgorithm from "./algorithms/dfs.js";
 
 export default function App() {
-    let featured_algorithm = "Dijkstra";
-    const rows = (window.innerHeight / 20) / (1.5);
+    let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
+    const rows = (window.innerHeight / 20) / (2);
     const columns = ((window.innerWidth - 150) / 20);
     console.log(window.innerHeight, window.innerWidth);
 
@@ -55,6 +57,11 @@ export default function App() {
         return nodes;
     };
 
+    function createPath(endNode) {
+        const path = [];
+
+    }
+
     function animateAlgorithm(path, nodes, setNodes) {
         for (let i=0; i<path.length; i++) {
             setTimeout(() => {
@@ -85,9 +92,23 @@ export default function App() {
         animateAlgorithm(path, nodes, setNodes);
     }
 
+    function visualizeBFS(nodes, setNodes) {
+        const startNode = nodes[8][10];
+        const endNode = nodes[8][40];
+        const path = bfsAlgorithm(nodes, startNode, endNode);
+        animateAlgorithm(path, nodes, setNodes);
+    }
+
+    function visualizeDFS(nodes, setNodes) {
+        const startNode = nodes[8][40];
+        const endNode = nodes[8][10];
+        const path = dfsAlgorithm(nodes, startNode, endNode);
+        animateAlgorithm(path, nodes, setNodes);
+    }
+
     // Algorithms selection function
     function selectAlgorithm(value) {
-        featured_algorithm = value;
+        setFeaturedAlgorithm(value);
         console.log(featured_algorithm);
     };
 
@@ -97,6 +118,12 @@ export default function App() {
         }
         else if (featured_algorithm === "A*") {
             visualizeAstar(nodes, setNodes);
+        }
+        else if (featured_algorithm === "BFS") {
+            visualizeBFS(nodes, setNodes);
+        }
+        else if (featured_algorithm === "DFS") {
+            visualizeDFS(nodes, setNodes);
         }
     }
 

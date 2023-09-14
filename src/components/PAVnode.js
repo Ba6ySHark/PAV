@@ -31,5 +31,9 @@ export function createNode(row, col) {
         isMarked: false,
         isPartOfPath: false,
         previousNode: null,
+        f_cost: 0,
+        g_cost: 0,
+        total_cost: 0,
+        parent: null,
     };
 };

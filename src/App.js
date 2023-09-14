@@ -3,9 +3,10 @@ import {createNode, PAVnode} from "./components/PAVnode.js";
 import PAVcanvas from "./components/PAVcanvas.js";
 import NavBar from "./components/NavBar.js";
 import dijkstraAlgorithm from "./algorithms/dijkstra.js";
+import astarAlgorithm from "./algorithms/astar.js";
 
 export default function App() {
-    let featured_algorithm = "undecided";
+    let featured_algorithm = "Dijkstra";
     const rows = (window.innerHeight / 20) / (1.5);
     const columns = ((window.innerWidth - 150) / 20);
     console.log(window.innerHeight, window.innerWidth);
@@ -54,7 +55,7 @@ export default function App() {
         return nodes;
     };
 
-    function animateDijkstra(path, nodes, setNodes) {
+    function animateAlgorithm(path, nodes, setNodes) {
         for (let i=0; i<path.length; i++) {
             setTimeout(() => {
                 const node = path[i];
@@ -74,14 +75,30 @@ export default function App() {
         const startNode = nodes[8][10];
         const endNode = nodes[8][40];
         const path = dijkstraAlgorithm(nodes, startNode, endNode);
-        animateDijkstra(path, nodes, setNodes);
+        animateAlgorithm(path, nodes, setNodes);
     };
+
+    function visualizeAstar(nodes, setNodes) {
+        const startNode = nodes[8][10];
+        const endNode = nodes[8][40];
+        const path = astarAlgorithm(nodes, startNode, endNode);
+        animateAlgorithm(path, nodes, setNodes);
+    }
 
     // Algorithms selection function
     function selectAlgorithm(value) {
         featured_algorithm = value;
         console.log(featured_algorithm);
     };
+
+    function visualizeSelectedAlgorithm() {
+        if (featured_algorithm === "Dijkstra") {
+            visualizeDijkstra(nodes, setNodes);
+        }
+        else if (featured_algorithm === "A*") {
+            visualizeAstar(nodes, setNodes);
+        }
+    }
 
     // Function that clears walls and marked path nodes from the grid
     function clearGrid() {
@@ -106,7 +123,7 @@ export default function App() {
         <div className="app">
             <NavBar
                 selectAlgorithm={selectAlgorithm}
-                visualizeDijkstra={() => visualizeDijkstra(nodes, setNodes)}
+                visualizeSelectedAlgorithm={() => visualizeSelectedAlgorithm()}
                 clearGrid={clearGrid}
                 clearPath={clearPath}
             />
@@ -122,3 +139,5 @@ export default function App() {
         </div>
     );
 };
+
+// visualizeDijkstra(nodes, setNodes)

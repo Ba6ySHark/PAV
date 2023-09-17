@@ -9,9 +9,8 @@ import dfsAlgorithm from "./algorithms/dfs.js";
 
 export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
-    const rows = (window.innerHeight / 20) / (2);
-    const columns = ((window.innerWidth - 150) / 20);
-    console.log(window.innerHeight, window.innerWidth);
+    const rows = (window.innerHeight / 20) / (1.5);
+    const columns = ((window.screen.width - 150) / 20);
 
     const [nodes, setNodes] = React.useState(createNodeList(rows, columns));
     const [mousePressed, setMouseState] = React.useState(false);
@@ -147,22 +146,24 @@ export default function App() {
     };
 
     return (
-        <div className="app">
+        <div className="App">
             <NavBar
                 selectAlgorithm={selectAlgorithm}
                 visualizeSelectedAlgorithm={() => visualizeSelectedAlgorithm()}
                 clearGrid={clearGrid}
                 clearPath={clearPath}
             />
-            <PAVcanvas
-                nodes={nodes}
-                setNodes={setNodes}
-                mousePressed={mousePressed}
-                setMouseState={setMouseState}
-                handleMouseDown={handleMouseDown}
-                handleMouseUp={handleMouseUp}
-                handleMouseHover={handleMouseHover}
-            />
+            <div className="App--container">
+                <PAVcanvas
+                    nodes={nodes}
+                    setNodes={setNodes}
+                    mousePressed={mousePressed}
+                    setMouseState={setMouseState}
+                    handleMouseDown={handleMouseDown}
+                    handleMouseUp={handleMouseUp}
+                    handleMouseHover={handleMouseHover}
+                />
+            </div>
         </div>
     );
 };

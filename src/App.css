@@ -8,6 +8,12 @@ body {
     height: 100vh;
 }
 
+.App--container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 /* nav section begins here */
 .nav {
     display: flex;
@@ -17,6 +23,7 @@ body {
     background-color: aqua;
     align-items: center;
     justify-content: space-between;
+    z-index: 999;
 }
 
 .features--algos {
@@ -46,10 +53,11 @@ body {
 /* nav section ends here */
 
 .canvas {
-    position: fixed;
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
+    position: relative;
+    width: 95%;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-35%);
 }
 
 .node {
@@ -77,6 +85,14 @@ body {
     height: 20px;
     border: 1px solid;
     background-color: blue;
+    transition: 0.6s;
+}
+
+.path {
+    width: 20px;
+    height: 20px;
+    border: 1px solid;
+    background-color: purple;
     transition: 0.6s;
 }
 

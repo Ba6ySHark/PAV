@@ -54,13 +54,14 @@ export default function astarAlgorithm(nodes, startNode, endNode) {
     const path = [];
 
     while (openSet.length > 0) {
-        console.log(openSet);
+        //console.log(openSet);
         openSet.sort((firstNode, secondNode) => (firstNode.total_cost - secondNode.total_cost));
         let current = openSet.shift();
         let childNodes = getUnvisitedNeighbors(current, nodes);
 
         for (const child of childNodes) {
             if (child == endNode) {
+                endNode.parent = current;
                 closedSet.push(current);
                 return closedSet;
             }
@@ -78,6 +79,7 @@ export default function astarAlgorithm(nodes, startNode, endNode) {
                     continue;
                 }
                 else {
+                    child.parent = current;
                     openSet.push(child);
                     path.push(child);
                 }

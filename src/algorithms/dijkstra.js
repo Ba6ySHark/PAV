@@ -39,7 +39,7 @@ function updateNeighbors(node, list) {
     const unvisitedNeighbors = getUnvisitedNeighbors(node, list);
     for (const neighbor of unvisitedNeighbors) {
         neighbor.distance = node.distance + 1;
-        neighbor.previousNode = node;
+        neighbor.parent = node;
     }
 };
 

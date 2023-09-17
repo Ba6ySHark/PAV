@@ -4,11 +4,13 @@ export function PAVnode(props) {
         classID = "start";
     } else if (props.node.isEnd) {
         classID = "end";
+    } else if (props.node.isPath) {
+        classID = "path";
     } else if (props.node.isMarked) {
         classID = "visited";
     } else if (props.node.isWall) {
         classID = "wall";
-    };
+    }
 
     return (
         <div className={classID} 
@@ -17,7 +19,7 @@ export function PAVnode(props) {
             onMouseUp={() => props.onMouseUp()}
         ></div>
     );
-};
+}
 
 export function createNode(row, col) {
     return {
@@ -29,11 +31,11 @@ export function createNode(row, col) {
         isWall: false,
         isVisited: false,
         isMarked: false,
-        isPartOfPath: false,
+        isPath: false,
         previousNode: null,
         f_cost: 0,
         g_cost: 0,
         total_cost: 0,
         parent: null,
-    };
-};
+    }
+}

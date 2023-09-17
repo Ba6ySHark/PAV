@@ -58,22 +58,55 @@ export default function App() {
 
     function createPath(endNode) {
         const path = [];
-
+        let node = {
+            ...endNode,
+        }
+        while (node.parent != null) {
+            const newNode = {
+                ...node.parent
+            }
+            path.push(newNode);
+            node = newNode;
+        }
+        path.reverse();
+        return path;
     }
 
-    function animateAlgorithm(path, nodes, setNodes) {
+    function animatePath(path, nodes, setNodes) {
         for (let i=0; i<path.length; i++) {
             setTimeout(() => {
-                const node = path[i];
+                const path_node = path[i];
                 const newList = nodes.slice();
                 const newNode = {
-                    ...node,
-                    isMarked: true,
-                };
-                newList[node.row][node.column] = newNode;
+                    ...path_node,
+                    isPath: true,
+                }
+                newList[path_node.row][path_node.column] = newNode;
                 setNodes(newList);
-                console.log(newList);
             }, (25 * i));
+        }
+    }
+
+    function animateAlgorithm(path, nodes, endNode, setNodes) {
+        for (let i=0; i<=path.length; i++) {
+            if (i === path.length) {
+                setTimeout(() => {
+                    animatePath(createPath(endNode), nodes, setNodes);
+                }, 25 * i);
+            }
+            else {
+                setTimeout(() => {
+                    const node = path[i];
+                    const newList = nodes.slice();
+                    const newNode = {
+                        ...node,
+                        isMarked: true,
+                    };
+                    newList[node.row][node.column] = newNode;
+                    setNodes(newList);
+                    //console.log(newList);
+                }, (25 * i));
+            }
         };
     };
     
@@ -81,28 +114,28 @@ export default function App() {
         const startNode = nodes[8][10];
         const endNode = nodes[8][40];
         const path = dijkstraAlgorithm(nodes, startNode, endNode);
-        animateAlgorithm(path, nodes, setNodes);
+        animateAlgorithm(path, nodes, endNode, setNodes);
     };
 
     function visualizeAstar(nodes, setNodes) {
         const startNode = nodes[8][10];
         const endNode = nodes[8][40];
         const path = astarAlgorithm(nodes, startNode, endNode);
-        animateAlgorithm(path, nodes, setNodes);
+        animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeBFS(nodes, setNodes) {
         const startNode = nodes[8][10];
         const endNode = nodes[8][40];
         const path = bfsAlgorithm(nodes, startNode, endNode);
-        animateAlgorithm(path, nodes, setNodes);
+        animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeDFS(nodes, setNodes) {
         const startNode = nodes[8][40];
         const endNode = nodes[8][10];
         const path = dfsAlgorithm(nodes, startNode, endNode);
-        animateAlgorithm(path, nodes, setNodes);
+        animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     // Algorithms selection function

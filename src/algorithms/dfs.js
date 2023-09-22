@@ -35,9 +35,9 @@ export default function dfsAlgorithm(nodes, startNode, endNode) {
         }
 
         const children = getUnvisitedNeighbors(current, nodes);
-        // for (const child of children) {
-        //     child.isVisited = true;
-        // }
+        for (const child of children) {
+            child.parent = current;
+        }
 
         unvisitedStack = children.concat(unvisitedStack);
         visited.push(current);

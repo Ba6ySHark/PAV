@@ -22,19 +22,19 @@ function getUnvisitedNeighbors(node, list) {
 }
 
 export default function bfsAlgorithm(nodes, startNode, endNode) {
-    startNode.visited = true;
     const queue = [startNode];
     const res = [];
 
     while (queue.length > 0) {
         const current = queue[0];
+        current.isVisited = true;
 
-        if (current == endNode) {
+        if (current === endNode) {
             return res;
         }
 
         const children = getUnvisitedNeighbors(current, nodes);
-        for (let child of children) {
+        for (const child of children) {
             child.isVisited = true;
             child.parent = current;
             queue.push(child);

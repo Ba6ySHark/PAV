@@ -26,7 +26,7 @@ body {
     z-index: 999;
 }
 
-.features--algos {
+.featured--algos {
     display: block;
 }
 
@@ -49,6 +49,46 @@ body {
 .algo--list:hover {
     position: absolute;
     display: block;
+}
+
+.speed--settings {
+    display: block;
+}
+
+.speed--settings:hover {
+    .speeds--list {
+        position: absolute;
+        display: block;
+        margin: 0;
+    }
+}
+
+.speed--settings h3 {
+    line-height: 50px;
+}
+
+.speeds--list {
+    display: none;
+}
+
+.wall--patterns {
+    display: block;
+}
+
+.wall--patterns:hover {
+    .patterns--list {
+        position: absolute;
+        display: block;
+        margin: 0;
+    }
+}
+
+.wall--patterns h3 {
+    line-height: 50px;
+}
+
+.patterns--list {
+    display: none;
 }
 /* nav section ends here */
 

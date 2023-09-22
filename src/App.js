@@ -9,6 +9,8 @@ import dfsAlgorithm from "./algorithms/dfs.js";
 
 export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
+    let [animationSpeed, setAnimationSpeed] = React.useState(25); // in ms (fast by default)
+
     const rows = (window.innerHeight / 20) / (1.5);
     const columns = ((window.screen.width - 150) / 20);
 
@@ -83,7 +85,7 @@ export default function App() {
                 }
                 newList[path_node.row][path_node.column] = newNode;
                 setNodes(newList);
-            }, (25 * i));
+            }, (animationSpeed * i));
         }
     }
 
@@ -92,7 +94,7 @@ export default function App() {
             if (i === path.length) {
                 setTimeout(() => {
                     animatePath(createPath(endNode), nodes, setNodes);
-                }, 25 * i);
+                }, animationSpeed * i);
             }
             else {
                 setTimeout(() => {
@@ -105,7 +107,7 @@ export default function App() {
                     newList[node.row][node.column] = newNode;
                     setNodes(newList);
                     //console.log(newList);
-                }, (25 * i));
+                }, (animationSpeed * i));
             }
         };
     };
@@ -132,8 +134,8 @@ export default function App() {
     }
 
     function visualizeDFS(nodes, setNodes) {
-        const startNode = nodes[8][40];
-        const endNode = nodes[8][10];
+        const startNode = nodes[8][10];
+        const endNode = nodes[8][40];
         const path = dfsAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
@@ -143,6 +145,21 @@ export default function App() {
         setFeaturedAlgorithm(value);
         console.log(featured_algorithm);
     };
+
+    function selectAnimationSpeed(value) {
+        if (value === "fast") {
+            setAnimationSpeed(25);
+        }
+        else if (value === "average") {
+            setAnimationSpeed(50);
+        }
+        else if (value === "slow") {
+            setAnimationSpeed(100);
+        }
+        else {
+            console.log("Error: unknown animation speed parameter");
+        }
+    }
 
     function visualizeSelectedAlgorithm() {
         if (featured_algorithm === "Dijkstra") {
@@ -182,6 +199,8 @@ export default function App() {
         <div className="App">
             <NavBar
                 selectAlgorithm={selectAlgorithm}
+                selectAnimationSpeed={selectAnimationSpeed}
+                currentAnimationSpeed={animationSpeed}
                 visualizeSelectedAlgorithm={() => visualizeSelectedAlgorithm()}
                 clearGrid={clearGrid}
                 clearPath={clearPath}

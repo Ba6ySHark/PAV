@@ -25,8 +25,8 @@ export default function NavBar(props) {
             <div className="wall--patterns">
                 <h3>Wall Patterns</h3>
                 <ul className="patterns--list">
-                    <li><button>Random Maze</button></li>
-                    <li><button>Recursive Maze</button></li>
+                    <li><button onClick={() => props.selectMazeType("random")}>Random Maze</button></li>
+                    <li><button onClick={() => props.selectMazeType("recursive")}>Recursive Maze</button></li>
                 </ul>
             </div>
             <button className="test">Add Bomb</button>

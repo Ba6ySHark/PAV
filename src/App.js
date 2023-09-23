@@ -1,15 +1,20 @@
 import React from "react";
+
 import {createNode, PAVnode} from "./components/PAVnode.js";
 import PAVcanvas from "./components/PAVcanvas.js";
 import NavBar from "./components/NavBar.js";
+
 import dijkstraAlgorithm from "./algorithms/dijkstra.js";
 import astarAlgorithm from "./algorithms/astar.js";
 import bfsAlgorithm from "./algorithms/bfs.js";
 import dfsAlgorithm from "./algorithms/dfs.js";
 
+import createRandomMaze from "./mazes/random.js";
+
 export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
     let [animationSpeed, setAnimationSpeed] = React.useState(25); // in ms (fast by default)
+    let [mazeType, setMazeType] = React.useState("random"); // set to random by default
 
     const rows = (window.innerHeight / 20) / (1.5);
     const columns = ((window.screen.width - 150) / 20);
@@ -144,7 +149,11 @@ export default function App() {
     function selectAlgorithm(value) {
         setFeaturedAlgorithm(value);
         console.log(featured_algorithm);
-    };
+    }
+
+    function selectMazeType(value) {
+        setMazeType(value);
+    }
 
     function selectAnimationSpeed(value) {
         if (value === "fast") {
@@ -199,6 +208,7 @@ export default function App() {
         <div className="App">
             <NavBar
                 selectAlgorithm={selectAlgorithm}
+                selectMazeType={selectMazeType}
                 selectAnimationSpeed={selectAnimationSpeed}
                 currentAnimationSpeed={animationSpeed}
                 visualizeSelectedAlgorithm={() => visualizeSelectedAlgorithm()}

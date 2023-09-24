@@ -10,14 +10,15 @@ import bfsAlgorithm from "./algorithms/bfs.js";
 import dfsAlgorithm from "./algorithms/dfs.js";
 
 import createRandomMaze from "./mazes/random.js";
+import createRecursiveMaze from "./mazes/recursive.js";
+import Description from "./components/Description.js";
 
 export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
     let [animationSpeed, setAnimationSpeed] = React.useState(25); // in ms (fast by default)
-    let [mazeType, setMazeType] = React.useState("random"); // set to random by default
 
-    const rows = (window.innerHeight / 20) / (1.5);
-    const columns = ((window.screen.width - 150) / 20);
+    const rows = (window.innerHeight / 25) / (1.5);
+    const columns = ((window.screen.width - 150) / 25);
 
     const [nodes, setNodes] = React.useState(createNodeList(rows, columns));
     const [mousePressed, setMouseState] = React.useState(false);
@@ -115,7 +116,20 @@ export default function App() {
                 }, (animationSpeed * i));
             }
         };
-    };
+    }
+
+    function animateMaze(value) {
+        const startNode = nodes[8][10];
+        const endNode = nodes[8][40];
+        let newNodes;
+        if (value === "random") {
+            newNodes = createRandomMaze(nodes, startNode, endNode);
+        }
+        else if (value === "recursive") {
+            newNodes = createRecursiveMaze(nodes, startNode, endNode);
+        }
+        setNodes(newNodes);
+    }
     
     function visualizeDijkstra(nodes, setNodes) {
         const startNode = nodes[8][10];
@@ -149,10 +163,6 @@ export default function App() {
     function selectAlgorithm(value) {
         setFeaturedAlgorithm(value);
         console.log(featured_algorithm);
-    }
-
-    function selectMazeType(value) {
-        setMazeType(value);
     }
 
     function selectAnimationSpeed(value) {
@@ -207,14 +217,16 @@ export default function App() {
     return (
         <div className="App">
             <NavBar
-                selectAlgorithm={selectAlgorithm}
-                selectMazeType={selectMazeType}
-                selectAnimationSpeed={selectAnimationSpeed}
                 currentAnimationSpeed={animationSpeed}
+                currentAlgorithm={featured_algorithm}
+                selectAlgorithm={selectAlgorithm}
+                selectMazeType={animateMaze}
+                selectAnimationSpeed={selectAnimationSpeed}
                 visualizeSelectedAlgorithm={() => visualizeSelectedAlgorithm()}
                 clearGrid={clearGrid}
                 clearPath={clearPath}
             />
+            <Description />
             <div className="App--container">
                 <PAVcanvas
                     nodes={nodes}

@@ -1,9 +1,9 @@
 export function PAVnode(props) {
     let classID = "node";
     if (props.node.isStart) {
-        classID = "start";
+        classID = "node start";
     } else if (props.node.isEnd) {
-        classID = "end";
+        classID = "node end";
     } else if (props.node.isPath) {
         classID = "path";
     } else if (props.node.isMarked) {
@@ -32,7 +32,6 @@ export function createNode(row, col) {
         isVisited: false,
         isMarked: false,
         isPath: false,
-        previousNode: null,
         f_cost: 0,
         g_cost: 0,
         total_cost: 0,

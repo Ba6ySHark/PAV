@@ -30,7 +30,7 @@ export default function NavBar(props) {
                 </ul>
             </div>
             <button className="test">Add Bomb</button>
-            <button onClick={() => props.visualizeSelectedAlgorithm()}>Visualize</button>
+            <button onClick={() => props.visualizeSelectedAlgorithm()}>Visualize {props.currentAlgorithm}</button>
             <button onClick={() => props.clearGrid()}>Clear Grid</button>
             <button onClick={() => props.clearPath()}>Clear Path</button>
             <div className="speed--settings">

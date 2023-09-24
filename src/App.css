@@ -9,7 +9,7 @@ body {
 }
 
 .App--container {
-    height: 100vh;
+    height: 75vh;
     display: flex;
     flex-direction: column;
 }
@@ -92,53 +92,77 @@ body {
 }
 /* nav section ends here */
 
+/* description section begins here */
+.description {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 85%;
+    height: 25vh;
+    margin: 0 auto;
+    list-style: none;
+}
+
+.description--element {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.display--element div {
+    display: flex;
+    align-items: center;
+}
+/* decription section ends here */
+
 .canvas {
     position: relative;
     width: 95%;
     margin: 0 auto;
-    top: 50%;
-    transform: translateY(-35%);
 }
 
 .node {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     border: 1px solid;
 }
 
 .start {
-    width: 20px;
-    height: 20px;
-    border: 1px solid;
-    background-color: green;
+    width: 25px;
+    height: 25px;
+    background-image: url(../public/start.png);
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .end {
-    width: 20px;
-    height: 20px;
-    border: 1px solid;
-    background-color: red;
+    width: 25px;
+    height: 25px;
+    background-image: url(../public/end.png);
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .visited {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     border: 1px solid;
     background-color: blue;
     transition: 0.6s;
 }
 
 .path {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     border: 1px solid;
     background-color: purple;
     transition: 0.6s;
 }
 
 .wall {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     border: 1px solid;
     background-color: black;
     transition: 0.6s;

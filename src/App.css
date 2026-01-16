@@ -151,9 +151,9 @@ body::before {
     z-index: 1000;
 }
 
-.featured--algos:hover .algo--list,
-.speed--settings:hover .speeds--list,
-.wall--patterns:hover .patterns--list {
+.algo--list.open,
+.speeds--list.open,
+.patterns--list.open {
     display: block;
 }
 

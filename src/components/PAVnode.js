@@ -21,12 +21,12 @@ export function PAVnode(props) {
     );
 }
 
-export function createNode(row, col) {
+export function createNode(row, col, startRow = 8, startCol = 10, endRow = 8, endCol = 40) {
     return {
         row: row,
         column: col,
-        isStart: row === 8 && col === 10,
-        isEnd: row === 8 && col === 40,
+        isStart: row === startRow && col === startCol,
+        isEnd: row === endRow && col === endCol,
         distance: Infinity,
         isWall: false,
         isVisited: false,

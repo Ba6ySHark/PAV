@@ -17,11 +17,49 @@ export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
     let [animationSpeed, setAnimationSpeed] = React.useState(25); // in ms (fast by default)
 
-    const rows = (window.innerHeight / 25) / (1.5);
-    const columns = ((window.screen.width - 150) / 25);
+    // Responsive grid calculation
+    const getGridDimensions = () => {
+        const isMobile = window.innerWidth <= 768;
+        const isSmallMobile = window.innerWidth <= 480;
+        
+        let nodeSize = 25;
+        if (isSmallMobile) {
+            nodeSize = 18;
+        } else if (isMobile) {
+            nodeSize = 20;
+        }
 
-    const [nodes, setNodes] = React.useState(createNodeList(rows, columns));
+        const availableHeight = window.innerHeight - (isMobile ? 250 : 200);
+        const availableWidth = window.innerWidth - (isMobile ? 40 : 100);
+        
+        const rows = Math.floor(availableHeight / nodeSize);
+        const columns = Math.floor(availableWidth / nodeSize);
+        
+        return { rows: Math.max(10, rows), columns: Math.max(15, columns), nodeSize };
+    };
+
+    const { rows, columns } = getGridDimensions();
+
+    const [nodes, setNodes] = React.useState(() => createNodeList(rows, columns));
     const [mousePressed, setMouseState] = React.useState(false);
+
+    // Handle window resize with debounce
+    React.useEffect(() => {
+        let timeoutId;
+        const handleResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const { rows: newRows, columns: newColumns } = getGridDimensions();
+                setNodes(createNodeList(newRows, newColumns));
+            }, 250);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeoutId);
+        };
+    }, []);
 
     function toggleWall(grid, row, col) {
         const newGrid = grid.slice();
@@ -30,6 +68,7 @@ export default function App() {
             ...node,
             isWall: !node.isWall,
         }
+        newGrid[row] = grid[row].slice();
         newGrid[row][col] = newNode;
         return newGrid;
     };
@@ -53,10 +92,15 @@ export default function App() {
 
     function createNodeList(rows, columns) {
         let nodes = [];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
         for (let i=0; i<rows; i++) {
             let subArray = [];
             for (let j=0; j<columns; j++) {
-                const node = createNode(i, j);
+                const node = createNode(i, j, startRow, startCol, endRow, endCol);
                 subArray.push(node);
             };
             nodes.push(subArray);
@@ -83,14 +127,16 @@ export default function App() {
     function animatePath(path, nodes, setNodes) {
         for (let i=0; i<path.length; i++) {
             setTimeout(() => {
-                const path_node = path[i];
-                const newList = nodes.slice();
-                const newNode = {
-                    ...path_node,
-                    isPath: true,
-                }
-                newList[path_node.row][path_node.column] = newNode;
-                setNodes(newList);
+                setNodes(prevNodes => {
+                    const path_node = path[i];
+                    const newList = prevNodes.map(row => row.slice());
+                    const newNode = {
+                        ...newList[path_node.row][path_node.column],
+                        isPath: true,
+                    }
+                    newList[path_node.row][path_node.column] = newNode;
+                    return newList;
+                });
             }, (animationSpeed * i));
         }
     }
@@ -99,28 +145,41 @@ export default function App() {
         for (let i=0; i<=path.length; i++) {
             if (i === path.length) {
                 setTimeout(() => {
-                    animatePath(createPath(endNode), nodes, setNodes);
+                    setNodes(currentNodes => {
+                        const pathNodes = createPath(endNode);
+                        animatePath(pathNodes, currentNodes, setNodes);
+                        return currentNodes;
+                    });
                 }, animationSpeed * i);
             }
             else {
                 setTimeout(() => {
-                    const node = path[i];
-                    const newList = nodes.slice();
-                    const newNode = {
-                        ...node,
-                        isMarked: true,
-                    };
-                    newList[node.row][node.column] = newNode;
-                    setNodes(newList);
-                    //console.log(newList);
+                    setNodes(prevNodes => {
+                        const node = path[i];
+                        const newList = prevNodes.map(row => row.slice());
+                        const newNode = {
+                            ...newList[node.row][node.column],
+                            isMarked: true,
+                        };
+                        newList[node.row][node.column] = newNode;
+                        return newList;
+                    });
                 }, (animationSpeed * i));
             }
         };
     }
 
     function animateMaze(value) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
+        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
+        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        
+        if (!startNode || !endNode) return;
+        
         let newNodes;
         if (value === "random") {
             newNodes = createRandomMaze(nodes, startNode, endNode);
@@ -132,29 +191,61 @@ export default function App() {
     }
     
     function visualizeDijkstra(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
+        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
+        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        
+        if (!startNode || !endNode) return;
+        
         const path = dijkstraAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     };
 
     function visualizeAstar(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
+        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
+        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        
+        if (!startNode || !endNode) return;
+        
         const path = astarAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeBFS(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
+        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
+        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        
+        if (!startNode || !endNode) return;
+        
         const path = bfsAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeDFS(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startRow = Math.min(8, Math.floor(rows / 2));
+        const startCol = Math.min(10, Math.floor(columns / 4));
+        const endRow = Math.min(8, Math.floor(rows / 2));
+        const endCol = Math.min(40, Math.floor(columns * 0.75));
+        
+        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
+        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        
+        if (!startNode || !endNode) return;
+        
         const path = dfsAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
@@ -197,16 +288,20 @@ export default function App() {
 
     // Function that clears walls and marked path nodes from the grid
     function clearGrid() {
-        const newNodesList = createNodeList(rows, columns);
+        const { rows: currentRows, columns: currentColumns } = getGridDimensions();
+        const newNodesList = createNodeList(currentRows, currentColumns);
         setNodes(newNodesList);
     };
 
     // Function that clears marked path nodes from the grid but keeps wall nodes marked
     function clearPath() {
-        const newNodesList = createNodeList(rows, columns);
-        for (let i=0; i<rows; i++) {
-            for (let j=0; j<columns; j++) {
-                if (nodes[i][j].isWall) {
+        const { rows: currentRows, columns: currentColumns } = getGridDimensions();
+        const newNodesList = createNodeList(currentRows, currentColumns);
+        const minRows = Math.min(currentRows, nodes.length);
+        const minCols = Math.min(currentColumns, nodes[0]?.length || 0);
+        for (let i=0; i<minRows; i++) {
+            for (let j=0; j<minCols; j++) {
+                if (nodes[i] && nodes[i][j] && nodes[i][j].isWall) {
                     newNodesList[i][j].isWall = true;
                 };
             };

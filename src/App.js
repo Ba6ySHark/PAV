@@ -40,8 +40,24 @@ export default function App() {
 
     const { rows, columns } = getGridDimensions();
 
-    const [startPos, setStartPos] = React.useState({ row: Math.min(8, Math.floor(rows / 2)), col: Math.min(10, Math.floor(columns / 4)) });
-    const [endPos, setEndPos] = React.useState({ row: Math.min(8, Math.floor(rows / 2)), col: Math.min(40, Math.floor(columns * 0.75)) });
+    // Calculate initial positions: 5 nodes from edges, vertically centered
+    const getInitialStartPos = (rows, cols) => {
+        const row = Math.floor(rows / 2); // Vertically centered
+        const col = cols >= 11 ? 5 : Math.floor(cols / 4); // 5 from left edge
+        return { row, col };
+    };
+    
+    const getInitialEndPos = (rows, cols) => {
+        const row = Math.floor(rows / 2); // Vertically centered
+        const col = cols >= 11 ? cols - 6 : Math.floor(cols * 0.75); // 5 from right edge
+        return { row, col };
+    };
+
+    const initialStartPos = getInitialStartPos(rows, columns);
+    const initialEndPos = getInitialEndPos(rows, columns);
+    
+    const [startPos, setStartPos] = React.useState(initialStartPos);
+    const [endPos, setEndPos] = React.useState(initialEndPos);
     const [nodes, setNodes] = React.useState(() => createNodeList(rows, columns, startPos.row, startPos.col, endPos.row, endPos.col));
     const [mousePressed, setMouseState] = React.useState(false);
     const [draggingStart, setDraggingStart] = React.useState(false);
@@ -54,8 +70,15 @@ export default function App() {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 const { rows: newRows, columns: newColumns } = getGridDimensions();
-                const newStartPos = { row: Math.min(startPos.row, newRows - 1), col: Math.min(startPos.col, newColumns - 1) };
-                const newEndPos = { row: Math.min(endPos.row, newRows - 1), col: Math.min(endPos.col, newColumns - 1) };
+                // Ensure positions are at least 5 from edges and within bounds
+                const newStartPos = { 
+                    row: Math.max(5, Math.min(startPos.row, newRows - 6)), 
+                    col: Math.max(5, Math.min(startPos.col, newColumns - 6)) 
+                };
+                const newEndPos = { 
+                    row: Math.max(5, Math.min(endPos.row, newRows - 6)), 
+                    col: Math.max(5, Math.min(endPos.col, newColumns - 6)) 
+                };
                 setStartPos(newStartPos);
                 setEndPos(newEndPos);
                 setNodes(createNodeList(newRows, newColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col));
@@ -331,8 +354,8 @@ export default function App() {
     // Function that clears walls and marked path nodes from the grid
     function clearGrid() {
         const { rows: currentRows, columns: currentColumns } = getGridDimensions();
-        const newStartPos = { row: Math.min(8, Math.floor(currentRows / 2)), col: Math.min(10, Math.floor(currentColumns / 4)) };
-        const newEndPos = { row: Math.min(8, Math.floor(currentRows / 2)), col: Math.min(40, Math.floor(currentColumns * 0.75)) };
+        const newStartPos = getInitialStartPos(currentRows, currentColumns);
+        const newEndPos = getInitialEndPos(currentRows, currentColumns);
         setStartPos(newStartPos);
         setEndPos(newEndPos);
         const newNodesList = createNodeList(currentRows, currentColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col);

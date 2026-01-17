@@ -2,6 +2,7 @@ import React from "react";
 
 export default function NavBar(props) {
     const [openDropdown, setOpenDropdown] = React.useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
     let speed;
     if (props.currentAnimationSpeed === 25) {
@@ -38,22 +39,42 @@ export default function NavBar(props) {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.featured--algos') && 
                 !event.target.closest('.wall--patterns') && 
-                !event.target.closest('.speed--settings')) {
+                !event.target.closest('.speed--settings') &&
+                !event.target.closest('.hamburger') &&
+                !event.target.closest('.nav--header')) {
                 setOpenDropdown(null);
+            }
+            // Close mobile menu when clicking outside
+            if (mobileMenuOpen && 
+                !event.target.closest('.nav') && 
+                !event.target.closest('.hamburger')) {
+                setMobileMenuOpen(false);
             }
         };
 
-        if (openDropdown) {
+        if (openDropdown || mobileMenuOpen) {
             document.addEventListener('click', handleClickOutside);
             return () => {
                 document.removeEventListener('click', handleClickOutside);
             };
         }
-    }, [openDropdown]);
+    }, [openDropdown, mobileMenuOpen]);
+
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
 
     return (
-        <div className="nav">
-            <h1>PAV</h1>
+        <div className={`nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+            <div className="nav--header">
+                <h1>PAV</h1>
+                <button className="hamburger" onClick={toggleMobileMenu} aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div className={`nav--content ${mobileMenuOpen ? 'open' : ''}`}>
             <div className="featured--algos">
                 <h3 onClick={() => toggleDropdown('algorithms')}>Algorithms</h3>
                 <ul className={`algo--list ${openDropdown === 'algorithms' ? 'open' : ''}`}>
@@ -80,6 +101,7 @@ export default function NavBar(props) {
                     <li><button onClick={() => handleSpeedSelect("average")}>Average</button></li>
                     <li><button onClick={() => handleSpeedSelect("slow")}>Slow</button></li>
                 </ul>
+            </div>
             </div>
         </div>
     );

@@ -40,8 +40,12 @@ export default function App() {
 
     const { rows, columns } = getGridDimensions();
 
-    const [nodes, setNodes] = React.useState(() => createNodeList(rows, columns));
+    const [startPos, setStartPos] = React.useState({ row: Math.min(8, Math.floor(rows / 2)), col: Math.min(10, Math.floor(columns / 4)) });
+    const [endPos, setEndPos] = React.useState({ row: Math.min(8, Math.floor(rows / 2)), col: Math.min(40, Math.floor(columns * 0.75)) });
+    const [nodes, setNodes] = React.useState(() => createNodeList(rows, columns, startPos.row, startPos.col, endPos.row, endPos.col));
     const [mousePressed, setMouseState] = React.useState(false);
+    const [draggingStart, setDraggingStart] = React.useState(false);
+    const [draggingEnd, setDraggingEnd] = React.useState(false);
 
     // Handle window resize with debounce
     React.useEffect(() => {
@@ -50,7 +54,11 @@ export default function App() {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 const { rows: newRows, columns: newColumns } = getGridDimensions();
-                setNodes(createNodeList(newRows, newColumns));
+                const newStartPos = { row: Math.min(startPos.row, newRows - 1), col: Math.min(startPos.col, newColumns - 1) };
+                const newEndPos = { row: Math.min(endPos.row, newRows - 1), col: Math.min(endPos.col, newColumns - 1) };
+                setStartPos(newStartPos);
+                setEndPos(newEndPos);
+                setNodes(createNodeList(newRows, newColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col));
             }, 250);
         };
 
@@ -74,29 +82,88 @@ export default function App() {
     };
 
     function handleMouseDown(row, col) {
+        const node = nodes[row][col];
+        
+        // Check if clicking on start or end node
+        if (node.isStart) {
+            setDraggingStart(true);
+            setMouseState(true);
+            return;
+        }
+        if (node.isEnd) {
+            setDraggingEnd(true);
+            setMouseState(true);
+            return;
+        }
+        
+        // Otherwise, toggle wall
         const newGrid = toggleWall(nodes, row, col);
         setMouseState(true);
         setNodes(newGrid);
     };
 
     function handleMouseHover(row, col) {
-        if (mousePressed) {
-            const newGrid = toggleWall(nodes, row, col);
-            setNodes(newGrid);
-        };
+        if (!mousePressed) return;
+        
+        const node = nodes[row][col];
+        
+        // If dragging start node, move it
+        if (draggingStart) {
+            if (!node.isEnd && !node.isWall) {
+                setStartPos({ row, col });
+                setNodes(prevNodes => {
+                    const newGrid = prevNodes.map(r => r.map(n => ({ ...n })));
+                    // Remove old start
+                    newGrid[startPos.row][startPos.col] = {
+                        ...newGrid[startPos.row][startPos.col],
+                        isStart: false
+                    };
+                    // Set new start
+                    newGrid[row][col] = {
+                        ...newGrid[row][col],
+                        isStart: true
+                    };
+                    return newGrid;
+                });
+            }
+            return;
+        }
+        
+        // If dragging end node, move it
+        if (draggingEnd) {
+            if (!node.isStart && !node.isWall) {
+                setEndPos({ row, col });
+                setNodes(prevNodes => {
+                    const newGrid = prevNodes.map(r => r.map(n => ({ ...n })));
+                    // Remove old end
+                    newGrid[endPos.row][endPos.col] = {
+                        ...newGrid[endPos.row][endPos.col],
+                        isEnd: false
+                    };
+                    // Set new end
+                    newGrid[row][col] = {
+                        ...newGrid[row][col],
+                        isEnd: true
+                    };
+                    return newGrid;
+                });
+            }
+            return;
+        }
+        
+        // Otherwise, toggle wall
+        const newGrid = toggleWall(nodes, row, col);
+        setNodes(newGrid);
     };
 
     function handleMouseUp() {
         setMouseState(false);
+        setDraggingStart(false);
+        setDraggingEnd(false);
     };
 
-    function createNodeList(rows, columns) {
+    function createNodeList(rows, columns, startRow, startCol, endRow, endCol) {
         let nodes = [];
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
         for (let i=0; i<rows; i++) {
             let subArray = [];
             for (let j=0; j<columns; j++) {
@@ -170,13 +237,8 @@ export default function App() {
     }
 
     function animateMaze(value) {
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
-        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
-        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
         
         if (!startNode || !endNode) return;
         
@@ -191,13 +253,8 @@ export default function App() {
     }
     
     function visualizeDijkstra(nodes, setNodes) {
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
-        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
-        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
         
         if (!startNode || !endNode) return;
         
@@ -206,13 +263,8 @@ export default function App() {
     };
 
     function visualizeAstar(nodes, setNodes) {
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
-        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
-        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
         
         if (!startNode || !endNode) return;
         
@@ -221,13 +273,8 @@ export default function App() {
     }
 
     function visualizeBFS(nodes, setNodes) {
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
-        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
-        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
         
         if (!startNode || !endNode) return;
         
@@ -236,13 +283,8 @@ export default function App() {
     }
 
     function visualizeDFS(nodes, setNodes) {
-        const startRow = Math.min(8, Math.floor(rows / 2));
-        const startCol = Math.min(10, Math.floor(columns / 4));
-        const endRow = Math.min(8, Math.floor(rows / 2));
-        const endCol = Math.min(40, Math.floor(columns * 0.75));
-        
-        const startNode = nodes[startRow]?.[startCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns / 4)];
-        const endNode = nodes[endRow]?.[endCol] || nodes[Math.floor(rows / 2)]?.[Math.floor(columns * 0.75)];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
         
         if (!startNode || !endNode) return;
         
@@ -289,14 +331,18 @@ export default function App() {
     // Function that clears walls and marked path nodes from the grid
     function clearGrid() {
         const { rows: currentRows, columns: currentColumns } = getGridDimensions();
-        const newNodesList = createNodeList(currentRows, currentColumns);
+        const newStartPos = { row: Math.min(8, Math.floor(currentRows / 2)), col: Math.min(10, Math.floor(currentColumns / 4)) };
+        const newEndPos = { row: Math.min(8, Math.floor(currentRows / 2)), col: Math.min(40, Math.floor(currentColumns * 0.75)) };
+        setStartPos(newStartPos);
+        setEndPos(newEndPos);
+        const newNodesList = createNodeList(currentRows, currentColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col);
         setNodes(newNodesList);
     };
 
     // Function that clears marked path nodes from the grid but keeps wall nodes marked
     function clearPath() {
         const { rows: currentRows, columns: currentColumns } = getGridDimensions();
-        const newNodesList = createNodeList(currentRows, currentColumns);
+        const newNodesList = createNodeList(currentRows, currentColumns, startPos.row, startPos.col, endPos.row, endPos.col);
         const minRows = Math.min(currentRows, nodes.length);
         const minCols = Math.min(currentColumns, nodes[0]?.length || 0);
         for (let i=0; i<minRows; i++) {

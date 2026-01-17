@@ -290,6 +290,11 @@ body::before {
     align-items: center;
     justify-content: center;
     border-radius: 4px;
+    cursor: grab;
+}
+
+.start:active {
+    cursor: grabbing;
 }
 
 .start::before {
@@ -315,6 +320,11 @@ body::before {
     align-items: center;
     justify-content: center;
     border-radius: 4px;
+    cursor: grab;
+}
+
+.end:active {
+    cursor: grabbing;
 }
 
 .end::before {

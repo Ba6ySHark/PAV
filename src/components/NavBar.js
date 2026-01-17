@@ -70,7 +70,6 @@ export default function NavBar(props) {
                     <li><button onClick={() => handleMazeSelect("recursive")}>Recursive Maze</button></li>
                 </ul>
             </div>
-            <button className="test">Add Bomb</button>
             <button onClick={() => props.visualizeSelectedAlgorithm()}>Visualize {props.currentAlgorithm}</button>
             <button onClick={() => props.clearGrid()}>Clear Grid</button>
             <button onClick={() => props.clearPath()}>Clear Path</button>

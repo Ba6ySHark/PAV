@@ -17,11 +17,80 @@ export default function App() {
     let [featured_algorithm, setFeaturedAlgorithm] = React.useState("Dijkstra");
     let [animationSpeed, setAnimationSpeed] = React.useState(25); // in ms (fast by default)
 
-    const rows = (window.innerHeight / 25) / (1.5);
-    const columns = ((window.screen.width - 150) / 25);
+    // Responsive grid calculation
+    const getGridDimensions = () => {
+        const isMobile = window.innerWidth <= 768;
+        const isSmallMobile = window.innerWidth <= 480;
+        
+        let nodeSize = 25;
+        if (isSmallMobile) {
+            nodeSize = 18;
+        } else if (isMobile) {
+            nodeSize = 20;
+        }
 
-    const [nodes, setNodes] = React.useState(createNodeList(rows, columns));
+        const availableHeight = window.innerHeight - (isMobile ? 250 : 200);
+        const availableWidth = window.innerWidth - (isMobile ? 40 : 100);
+        
+        const rows = Math.floor(availableHeight / nodeSize);
+        const columns = Math.floor(availableWidth / nodeSize);
+        
+        return { rows: Math.max(10, rows), columns: Math.max(15, columns), nodeSize };
+    };
+
+    const { rows, columns } = getGridDimensions();
+
+    // Calculate initial positions: 5 nodes from edges, vertically centered
+    const getInitialStartPos = (rows, cols) => {
+        const row = Math.floor(rows / 2); // Vertically centered
+        const col = cols >= 11 ? 5 : Math.floor(cols / 4); // 5 from left edge
+        return { row, col };
+    };
+    
+    const getInitialEndPos = (rows, cols) => {
+        const row = Math.floor(rows / 2); // Vertically centered
+        const col = cols >= 11 ? cols - 6 : Math.floor(cols * 0.75); // 5 from right edge
+        return { row, col };
+    };
+
+    const initialStartPos = getInitialStartPos(rows, columns);
+    const initialEndPos = getInitialEndPos(rows, columns);
+    
+    const [startPos, setStartPos] = React.useState(initialStartPos);
+    const [endPos, setEndPos] = React.useState(initialEndPos);
+    const [nodes, setNodes] = React.useState(() => createNodeList(rows, columns, startPos.row, startPos.col, endPos.row, endPos.col));
     const [mousePressed, setMouseState] = React.useState(false);
+    const [draggingStart, setDraggingStart] = React.useState(false);
+    const [draggingEnd, setDraggingEnd] = React.useState(false);
+
+    // Handle window resize with debounce
+    React.useEffect(() => {
+        let timeoutId;
+        const handleResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const { rows: newRows, columns: newColumns } = getGridDimensions();
+                // Ensure positions are at least 5 from edges and within bounds
+                const newStartPos = { 
+                    row: Math.max(5, Math.min(startPos.row, newRows - 6)), 
+                    col: Math.max(5, Math.min(startPos.col, newColumns - 6)) 
+                };
+                const newEndPos = { 
+                    row: Math.max(5, Math.min(endPos.row, newRows - 6)), 
+                    col: Math.max(5, Math.min(endPos.col, newColumns - 6)) 
+                };
+                setStartPos(newStartPos);
+                setEndPos(newEndPos);
+                setNodes(createNodeList(newRows, newColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col));
+            }, 250);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeoutId);
+        };
+    }, []);
 
     function toggleWall(grid, row, col) {
         const newGrid = grid.slice();
@@ -30,33 +99,98 @@ export default function App() {
             ...node,
             isWall: !node.isWall,
         }
+        newGrid[row] = grid[row].slice();
         newGrid[row][col] = newNode;
         return newGrid;
     };
 
     function handleMouseDown(row, col) {
+        const node = nodes[row][col];
+        
+        // Check if clicking on start or end node
+        if (node.isStart) {
+            setDraggingStart(true);
+            setMouseState(true);
+            return;
+        }
+        if (node.isEnd) {
+            setDraggingEnd(true);
+            setMouseState(true);
+            return;
+        }
+        
+        // Otherwise, toggle wall
         const newGrid = toggleWall(nodes, row, col);
         setMouseState(true);
         setNodes(newGrid);
     };
 
     function handleMouseHover(row, col) {
-        if (mousePressed) {
-            const newGrid = toggleWall(nodes, row, col);
-            setNodes(newGrid);
-        };
+        if (!mousePressed) return;
+        
+        const node = nodes[row][col];
+        
+        // If dragging start node, move it
+        if (draggingStart) {
+            if (!node.isEnd && !node.isWall) {
+                setStartPos({ row, col });
+                setNodes(prevNodes => {
+                    const newGrid = prevNodes.map(r => r.map(n => ({ ...n })));
+                    // Remove old start
+                    newGrid[startPos.row][startPos.col] = {
+                        ...newGrid[startPos.row][startPos.col],
+                        isStart: false
+                    };
+                    // Set new start
+                    newGrid[row][col] = {
+                        ...newGrid[row][col],
+                        isStart: true
+                    };
+                    return newGrid;
+                });
+            }
+            return;
+        }
+        
+        // If dragging end node, move it
+        if (draggingEnd) {
+            if (!node.isStart && !node.isWall) {
+                setEndPos({ row, col });
+                setNodes(prevNodes => {
+                    const newGrid = prevNodes.map(r => r.map(n => ({ ...n })));
+                    // Remove old end
+                    newGrid[endPos.row][endPos.col] = {
+                        ...newGrid[endPos.row][endPos.col],
+                        isEnd: false
+                    };
+                    // Set new end
+                    newGrid[row][col] = {
+                        ...newGrid[row][col],
+                        isEnd: true
+                    };
+                    return newGrid;
+                });
+            }
+            return;
+        }
+        
+        // Otherwise, toggle wall
+        const newGrid = toggleWall(nodes, row, col);
+        setNodes(newGrid);
     };
 
     function handleMouseUp() {
         setMouseState(false);
+        setDraggingStart(false);
+        setDraggingEnd(false);
     };
 
-    function createNodeList(rows, columns) {
+    function createNodeList(rows, columns, startRow, startCol, endRow, endCol) {
         let nodes = [];
         for (let i=0; i<rows; i++) {
             let subArray = [];
             for (let j=0; j<columns; j++) {
-                const node = createNode(i, j);
+                const node = createNode(i, j, startRow, startCol, endRow, endCol);
                 subArray.push(node);
             };
             nodes.push(subArray);
@@ -83,14 +217,16 @@ export default function App() {
     function animatePath(path, nodes, setNodes) {
         for (let i=0; i<path.length; i++) {
             setTimeout(() => {
-                const path_node = path[i];
-                const newList = nodes.slice();
-                const newNode = {
-                    ...path_node,
-                    isPath: true,
-                }
-                newList[path_node.row][path_node.column] = newNode;
-                setNodes(newList);
+                setNodes(prevNodes => {
+                    const path_node = path[i];
+                    const newList = prevNodes.map(row => row.slice());
+                    const newNode = {
+                        ...newList[path_node.row][path_node.column],
+                        isPath: true,
+                    }
+                    newList[path_node.row][path_node.column] = newNode;
+                    return newList;
+                });
             }, (animationSpeed * i));
         }
     }
@@ -99,28 +235,36 @@ export default function App() {
         for (let i=0; i<=path.length; i++) {
             if (i === path.length) {
                 setTimeout(() => {
-                    animatePath(createPath(endNode), nodes, setNodes);
+                    setNodes(currentNodes => {
+                        const pathNodes = createPath(endNode);
+                        animatePath(pathNodes, currentNodes, setNodes);
+                        return currentNodes;
+                    });
                 }, animationSpeed * i);
             }
             else {
                 setTimeout(() => {
-                    const node = path[i];
-                    const newList = nodes.slice();
-                    const newNode = {
-                        ...node,
-                        isMarked: true,
-                    };
-                    newList[node.row][node.column] = newNode;
-                    setNodes(newList);
-                    //console.log(newList);
+                    setNodes(prevNodes => {
+                        const node = path[i];
+                        const newList = prevNodes.map(row => row.slice());
+                        const newNode = {
+                            ...newList[node.row][node.column],
+                            isMarked: true,
+                        };
+                        newList[node.row][node.column] = newNode;
+                        return newList;
+                    });
                 }, (animationSpeed * i));
             }
         };
     }
 
     function animateMaze(value) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
+        
+        if (!startNode || !endNode) return;
+        
         let newNodes;
         if (value === "random") {
             newNodes = createRandomMaze(nodes, startNode, endNode);
@@ -132,29 +276,41 @@ export default function App() {
     }
     
     function visualizeDijkstra(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
+        
+        if (!startNode || !endNode) return;
+        
         const path = dijkstraAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     };
 
     function visualizeAstar(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
+        
+        if (!startNode || !endNode) return;
+        
         const path = astarAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeBFS(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
+        
+        if (!startNode || !endNode) return;
+        
         const path = bfsAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
 
     function visualizeDFS(nodes, setNodes) {
-        const startNode = nodes[8][10];
-        const endNode = nodes[8][40];
+        const startNode = nodes[startPos.row]?.[startPos.col];
+        const endNode = nodes[endPos.row]?.[endPos.col];
+        
+        if (!startNode || !endNode) return;
+        
         const path = dfsAlgorithm(nodes, startNode, endNode);
         animateAlgorithm(path, nodes, endNode, setNodes);
     }
@@ -197,16 +353,24 @@ export default function App() {
 
     // Function that clears walls and marked path nodes from the grid
     function clearGrid() {
-        const newNodesList = createNodeList(rows, columns);
+        const { rows: currentRows, columns: currentColumns } = getGridDimensions();
+        const newStartPos = getInitialStartPos(currentRows, currentColumns);
+        const newEndPos = getInitialEndPos(currentRows, currentColumns);
+        setStartPos(newStartPos);
+        setEndPos(newEndPos);
+        const newNodesList = createNodeList(currentRows, currentColumns, newStartPos.row, newStartPos.col, newEndPos.row, newEndPos.col);
         setNodes(newNodesList);
     };
 
     // Function that clears marked path nodes from the grid but keeps wall nodes marked
     function clearPath() {
-        const newNodesList = createNodeList(rows, columns);
-        for (let i=0; i<rows; i++) {
-            for (let j=0; j<columns; j++) {
-                if (nodes[i][j].isWall) {
+        const { rows: currentRows, columns: currentColumns } = getGridDimensions();
+        const newNodesList = createNodeList(currentRows, currentColumns, startPos.row, startPos.col, endPos.row, endPos.col);
+        const minRows = Math.min(currentRows, nodes.length);
+        const minCols = Math.min(currentColumns, nodes[0]?.length || 0);
+        for (let i=0; i<minRows; i++) {
+            for (let j=0; j<minCols; j++) {
+                if (nodes[i] && nodes[i][j] && nodes[i][j].isWall) {
                     newNodesList[i][j].isWall = true;
                 };
             };
@@ -226,17 +390,19 @@ export default function App() {
                 clearGrid={clearGrid}
                 clearPath={clearPath}
             />
-            <Description />
-            <div className="App--container">
-                <PAVcanvas
-                    nodes={nodes}
-                    setNodes={setNodes}
-                    mousePressed={mousePressed}
-                    setMouseState={setMouseState}
-                    handleMouseDown={handleMouseDown}
-                    handleMouseUp={handleMouseUp}
-                    handleMouseHover={handleMouseHover}
-                />
+            <div className="App--content">
+                <Description />
+                <div className="App--container">
+                    <PAVcanvas
+                        nodes={nodes}
+                        setNodes={setNodes}
+                        mousePressed={mousePressed}
+                        setMouseState={setMouseState}
+                        handleMouseDown={handleMouseDown}
+                        handleMouseUp={handleMouseUp}
+                        handleMouseHover={handleMouseHover}
+                    />
+                </div>
             </div>
         </div>
     );

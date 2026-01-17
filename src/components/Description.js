@@ -14,15 +14,15 @@ export default function Description(props) {
                 <h2>Unvisited Node</h2>
             </li>
             <li className="description--element">
-                    <div className="node"></div>
+                    <div className="visited"></div>
                     <h2>Visited Node</h2>
             </li>
             <li className="description--element">
-                    <div className="node"></div>
+                    <div className="path"></div>
                     <h2>Shortest-path Node</h2>
             </li>
             <li className="description--element">
-                    <div className="node"></div>
+                    <div className="wall"></div>
                     <h2>Wall Node</h2>
             </li>
         </ul>

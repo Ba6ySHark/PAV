@@ -321,17 +321,19 @@ export default function App() {
                 clearGrid={clearGrid}
                 clearPath={clearPath}
             />
-            <Description />
-            <div className="App--container">
-                <PAVcanvas
-                    nodes={nodes}
-                    setNodes={setNodes}
-                    mousePressed={mousePressed}
-                    setMouseState={setMouseState}
-                    handleMouseDown={handleMouseDown}
-                    handleMouseUp={handleMouseUp}
-                    handleMouseHover={handleMouseHover}
-                />
+            <div className="App--content">
+                <Description />
+                <div className="App--container">
+                    <PAVcanvas
+                        nodes={nodes}
+                        setNodes={setNodes}
+                        mousePressed={mousePressed}
+                        setMouseState={setMouseState}
+                        handleMouseDown={handleMouseDown}
+                        handleMouseUp={handleMouseUp}
+                        handleMouseHover={handleMouseHover}
+                    />
+                </div>
             </div>
         </div>
     );

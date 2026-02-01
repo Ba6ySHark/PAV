@@ -67,7 +67,7 @@ export default function NavBar(props) {
     return (
         <div className={`nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
             <div className="nav--header">
-                <h1>PAV</h1>
+                <h1><a href="https://ba6yshark.github.io/PAV/" target="_blank" rel="noopener noreferrer">PAV</a></h1>
                 <button className="hamburger" onClick={toggleMobileMenu} aria-label="Toggle menu">
                     <span></span>
                     <span></span>

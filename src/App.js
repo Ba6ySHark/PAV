@@ -259,6 +259,44 @@ export default function App() {
         };
     }
 
+    // Helper function to check if a path exists from start to end
+    function pathExists(nodes, startNode, endNode) {
+        // Create a deep copy to avoid mutating the original nodes
+        const nodesCopy = nodes.map(row => row.map(node => ({ ...node })));
+        const startCopy = nodesCopy[startNode.row][startNode.column];
+        const endCopy = nodesCopy[endNode.row][endNode.column];
+        
+        const queue = [startCopy];
+        const visited = new Set();
+        visited.add(`${startCopy.row},${startCopy.column}`);
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            
+            if (current.row === endCopy.row && current.column === endCopy.column) {
+                return true;
+            }
+            
+            const neighbors = [];
+            const { row, column } = current;
+            
+            if (row > 0) neighbors.push(nodesCopy[row - 1][column]);
+            if (row < nodesCopy.length - 1) neighbors.push(nodesCopy[row + 1][column]);
+            if (column > 0) neighbors.push(nodesCopy[row][column - 1]);
+            if (column < nodesCopy[0].length - 1) neighbors.push(nodesCopy[row][column + 1]);
+            
+            for (const neighbor of neighbors) {
+                const key = `${neighbor.row},${neighbor.column}`;
+                if (!neighbor.isWall && !visited.has(key)) {
+                    visited.add(key);
+                    queue.push(neighbor);
+                }
+            }
+        }
+        
+        return false;
+    }
+
     function animateMaze(value) {
         const startNode = nodes[startPos.row]?.[startPos.col];
         const endNode = nodes[endPos.row]?.[endPos.col];
@@ -267,7 +305,49 @@ export default function App() {
         
         let newNodes;
         if (value === "random") {
-            newNodes = createRandomMaze(nodes, startNode, endNode);
+            // For random mazes, regenerate if no path exists (max 50 attempts to avoid infinite loops)
+            let attempts = 0;
+            const maxAttempts = 50;
+            let hasValidPath = false;
+            let baseNodes = nodes;
+            let currentStartPos = startPos;
+            let currentEndPos = endPos;
+            
+            do {
+                // Clear grid first if this is a retry after finding no path
+                if (attempts > 0) {
+                    const { rows: currentRows, columns: currentColumns } = getGridDimensions();
+                    currentStartPos = getInitialStartPos(currentRows, currentColumns);
+                    currentEndPos = getInitialEndPos(currentRows, currentColumns);
+                    baseNodes = createNodeList(currentRows, currentColumns, currentStartPos.row, currentStartPos.col, currentEndPos.row, currentEndPos.col);
+                    setStartPos(currentStartPos);
+                    setEndPos(currentEndPos);
+                }
+                
+                const currentStartNode = baseNodes[currentStartPos.row]?.[currentStartPos.col];
+                const currentEndNode = baseNodes[currentEndPos.row]?.[currentEndPos.col];
+                
+                if (!currentStartNode || !currentEndNode) break;
+                
+                newNodes = createRandomMaze(baseNodes, currentStartNode, currentEndNode);
+                attempts++;
+                
+                // Check if path exists
+                const startNodeNew = newNodes[currentStartPos.row]?.[currentStartPos.col];
+                const endNodeNew = newNodes[currentEndPos.row]?.[currentEndPos.col];
+                
+                if (startNodeNew && endNodeNew && pathExists(newNodes, startNodeNew, endNodeNew)) {
+                    hasValidPath = true;
+                    break;
+                }
+                
+            } while (attempts < maxAttempts);
+            
+            // If we couldn't find a valid maze after max attempts, clear the grid
+            if (!hasValidPath) {
+                clearGrid();
+                return;
+            }
         }
         else if (value === "recursive") {
             newNodes = createRecursiveMaze(nodes, startNode, endNode);
